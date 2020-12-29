@@ -24,7 +24,7 @@ This project extends protoc via [options](https://developers.google.com/protocol
 To avoid any future conflicts, we have a reserved an id (# 1090) for the protobuf extension.  We'll use a map to keep things flexible for the many desired options, rather than allocating more and more individual extenion id options.  
 
 
-**Note on versioning:**
+**Note on version of Terraform Generated:**
 For now, we will generate Terraform v0.13.  TBD intent on whether/when to update what gets generated [seems more ideal]  and/or if will facilitate multiple versions based on additional options.  
 
 
