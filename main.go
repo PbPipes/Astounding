@@ -170,7 +170,7 @@ func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorR
 `, msg.GetName(), msg.GetName())
 
 			resFile := &plugin.CodeGeneratorResponse_File{
-				Name:    proto.String(fmt.Sprintf("%s/%s.tf", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
+				Name:    proto.String(fmt.Sprintf("%s/pubsub/%s.tf", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
 				Content: proto.String(string(pubsubTF_template)),
 			}
 
