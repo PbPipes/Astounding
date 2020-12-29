@@ -35,7 +35,7 @@ message PipeOptions {
   // TO DO - while breaking changes still tentatively allowed, 
   //   see if can use bool, and get Topic Name from Message Name
   //   (when true).
-  string topic_name = 1;
+  string pubsub_topic_name = 1;
   // 
   // string topic_location = 2;
   // 
