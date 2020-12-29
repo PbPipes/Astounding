@@ -5,9 +5,17 @@ package foo;
 import "pipeline.proto";
 
 message CoffeeOrder {
-  option (gen_pipes.pipe_opts).pubsub_topic_name = "bar";
+  option (gen_pipes.pipe_opts).gen_pubsub_topic = "true";
 
   string type = 1;
   string size = 2;
 
 }
+
+message BreakfastOrder {
+    option (gen_pipes.pipe_opts).gen_pubsub_topic = "true";
+  
+    string type = 1;
+    string size = 2;
+  
+  }

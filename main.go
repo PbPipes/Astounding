@@ -144,13 +144,6 @@ func getPipelineMessageOptions(msg *descriptor.DescriptorProto) (*Astounding.Pip
 }
 
 func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorResponse_File, error) {
-	/*
-		name := path.Base(file.GetName())
-		pkg, ok := globalPkg.relativelyLookupPackage(file.GetPackage())
-		if !ok {
-			return nil, fmt.Errorf("no such package found: %s", file.GetPackage())
-		}
-	*/
 
 	response := []*plugin.CodeGeneratorResponse_File{}
 	for _, msg := range file.GetMessageType() {
@@ -162,22 +155,27 @@ func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorR
 			continue
 		}
 
-		pubsubTopicName := opts.GetPubsubTopicName()
+		if opts.GetPubsubTopicName() == "true" {
+			pubsubTopicName := msg.GetName()
 
-		pubsubTF_template := fmt.Sprintf(`resource "google_pubsub_topic" "%s" {
-name = "%s"
+			pubsubTF_template := fmt.Sprintf(`resource "google_pubsub_topic" "%s" {
+	name = "%s"
 
-labels = {
-	foo = "foobar"
+	labels = {
+		foo = "foobar",
+		mor = "again"
+	}
 }
-}
-`, pubsubTopicName, pubsubTopicName)
+`, msg.GetName(), msg.GetName())
 
-		resFile := &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(fmt.Sprintf("%s/%s.tf", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
-			Content: proto.String(string(pubsubTF_template)),
+			resFile := &plugin.CodeGeneratorResponse_File{
+				Name:    proto.String(fmt.Sprintf("%s/%s.tf", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
+				Content: proto.String(string(pubsubTF_template)),
+			}
+			//fmt.Println(msg.GetName())
+
+			response = append(response, resFile)
 		}
-		response = append(response, resFile)
 	}
 
 	return response, nil
