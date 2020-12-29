@@ -22,3 +22,9 @@ More difficult, but ideally longer-term, we'll get to a place where we can annot
 This project extends protoc via [options](https://developers.google.com/protocol-buffers/docs/proto3#options).  
 
 To avoid any future conflicts, we have a reserved an id (# 1090) for the protobuf extension.  We'll use a map to keep things flexible for the many desired options, rather than allocating more and more individual extenion id options.  
+
+
+
+
+Note:
+The name is a reference to [Astounding Stories](https://en.wikipedia.org/wiki/Analog_Science_Fiction_and_Fact).   Specifically, [*Collision Orbit*](https://en.wikipedia.org/wiki/Collision_Orbit), written by [Jack Williamson](https://en.wikipedia.org/wiki/Jack_Williamson), given it is the first claimed use of [Terraforming](https://en.wikipedia.org/wiki/Terraforming), which is what much of this code creates!  
