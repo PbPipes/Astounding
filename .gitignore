@@ -17,4 +17,6 @@ vendor/
 # VsCode
 .vscode/
 
+#Binaries produced //TODO - remove Astounding, once package updated
 Astounding
+protoc-gen-pipeline

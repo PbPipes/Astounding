@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package foo;
+
+import "pipeline.proto";
+
+message CoffeeOrder {
+  option (gen_pipes.pipe_opts).pubsub_topic_name = "bar";
+
+  string type = 1;
+  string size = 2;
+
+}
