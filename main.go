@@ -164,9 +164,18 @@ func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorR
 
 		pubsubTopicName := opts.GetPubsubTopicName()
 
+		pubsubTF_template := fmt.Sprintf(`resource "google_pubsub_topic" "%s" {
+name = "%s"
+
+labels = {
+	foo = "foobar"
+}
+}
+`, pubsubTopicName, pubsubTopicName)
+
 		resFile := &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(fmt.Sprintf("%s/%s.schema", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
-			Content: proto.String(string("pubSubTOPIC!")),
+			Name:    proto.String(fmt.Sprintf("%s/%s.tf", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
+			Content: proto.String(string(pubsubTF_template)),
 		}
 		response = append(response, resFile)
 	}
