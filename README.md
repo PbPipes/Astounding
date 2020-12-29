@@ -1,5 +1,10 @@
 # Astounding
 
+### How to use
+See [docs/using.md](docs/using.md) for instructions on how to use.
+<br>
+<br>
+## What this is
 This is the start of a project to create the cloud infrastructure around protocol buffers.  
 
 Specifically, [Terraform](https://www.terraform.io/) is generated via .proto files and extending protoc.  

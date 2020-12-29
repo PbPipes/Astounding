@@ -5,7 +5,7 @@ package foo;
 import "pipeline.proto";
 
 message CoffeeOrder {
-  option (gen_pipes.pipe_opts).gen_pubsub_topic = "true";
+  option (gen_pipes.pipe_opts).gen_pubsub_topic = "yes";
 
   string type = 1;
   string size = 2;
@@ -13,9 +13,9 @@ message CoffeeOrder {
 }
 
 message BreakfastOrder {
-    option (gen_pipes.pipe_opts).gen_pubsub_topic = "true";
+    option (gen_pipes.pipe_opts).gen_pubsub_topic = "yes";
   
     string type = 1;
     string size = 2;
   
-  }
+}
