@@ -13,7 +13,9 @@ The services initially targeted will be:
 * [BigQuery](https://cloud.google.com/bigquery)
 * [Dataflow](https://cloud.google.com/dataflow)
 
-Ideally, extensions will folllow to support loadbalancers and perhaps everything to support the entire end-to-end pipelines.  
+For BigQuery, we will also rely on [protoc-gen-bq-schema](https://github.com/GoogleCloudPlatform/protoc-gen-bq-schema).
+
+After initial bits of the easier stuff, extensions will folllow to support loadbalancers and perhaps everything to support the entire end-to-end pipelines.  
 
 More difficult, but ideally longer-term, we'll get to a place where we can annotate the proto with the sort of desired grouping/stateful transformations, and some additional cool things that can be done with real-time data.  
 
