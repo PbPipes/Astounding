@@ -6,11 +6,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
 	"strings"
 
-	"github.com/PbPipes/Astounding/"
-
+	Astounding "github.com/PbPipes/Astounding/pipeline"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"google.golang.org/protobuf/proto"
 
@@ -38,22 +36,116 @@ type ProtoPackage struct {
 	types    map[string]*descriptor.DescriptorProto
 }
 
+func registerType(pkgName *string, msg *descriptor.DescriptorProto) {
+	pkg := globalPkg
+	if pkgName != nil {
+		for _, node := range strings.Split(*pkgName, ".") {
+			if pkg == globalPkg && node == "" {
+				// Skips leading "."
+				continue
+			}
+
+			child, ok := pkg.children[node]
+			if !ok {
+				child = &ProtoPackage{
+					name:     pkg.name + "." + node,
+					parent:   pkg,
+					children: make(map[string]*ProtoPackage),
+					types:    make(map[string]*descriptor.DescriptorProto),
+				}
+				pkg.children[node] = child
+			}
+			pkg = child
+		}
+	}
+
+	pkg.types[msg.GetName()] = msg
+}
+
+func (pkg *ProtoPackage) lookupType(name string) (*descriptor.DescriptorProto, bool) {
+	if strings.HasPrefix(name, ".") {
+		return globalPkg.relativelyLookupType(name[1:len(name)])
+	}
+
+	for ; pkg != nil; pkg = pkg.parent {
+		if desc, ok := pkg.relativelyLookupType(name); ok {
+			return desc, ok
+		}
+	}
+	return nil, false
+}
+
+func relativelyLookupNestedType(desc *descriptor.DescriptorProto, name string) (*descriptor.DescriptorProto, bool) {
+	components := strings.Split(name, ".")
+componentLoop:
+	for _, component := range components {
+		for _, nested := range desc.GetNestedType() {
+			if nested.GetName() == component {
+				desc = nested
+				continue componentLoop
+			}
+		}
+		glog.Infof("no such nested message %s in %s", component, desc.GetName())
+		return nil, false
+	}
+	return desc, true
+}
+
+func (pkg *ProtoPackage) relativelyLookupType(name string) (*descriptor.DescriptorProto, bool) {
+	components := strings.SplitN(name, ".", 2)
+	switch len(components) {
+	case 0:
+		glog.V(1).Info("empty message name")
+		return nil, false
+	case 1:
+		found, ok := pkg.types[components[0]]
+		return found, ok
+	case 2:
+		glog.Infof("looking for %s in %s at %s (%v)", components[1], components[0], pkg.name, pkg)
+		if child, ok := pkg.children[components[0]]; ok {
+			found, ok := child.relativelyLookupType(components[1])
+			return found, ok
+		}
+		if msg, ok := pkg.types[components[0]]; ok {
+			found, ok := relativelyLookupNestedType(msg, components[1])
+			return found, ok
+		}
+		glog.V(1).Infof("no such package nor message %s in %s", components[0], pkg.name)
+		return nil, false
+	default:
+		glog.Fatal("not reached")
+		return nil, false
+	}
+}
+
+func (pkg *ProtoPackage) relativelyLookupPackage(name string) (*ProtoPackage, bool) {
+	components := strings.Split(name, ".")
+	for _, c := range components {
+		var ok bool
+		pkg, ok = pkg.children[c]
+		if !ok {
+			return nil, false
+		}
+	}
+	return pkg, true
+}
+
 func getPipelineMessageOptions(msg *descriptor.DescriptorProto) (*Astounding.PipeOptions, error) {
 	options := msg.GetOptions()
 	if options == nil {
 		return nil, nil
 	}
 
-	if !proto.HasExtension(options, Astounding.PipeOptions) {
+	if !proto.HasExtension(options, Astounding.E_PipeOpts) {
 		return nil, nil
 	}
 
-	return proto.GetExtension(options, Astounding.PipeOptions).(*Astounding.PipeOptions), nil
+	return proto.GetExtension(options, Astounding.E_PipeOpts).(*Astounding.PipeOptions), nil
 }
 
 func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorResponse_File, error) {
-	name := path.Base(file.GetName())
 	/*
+		name := path.Base(file.GetName())
 		pkg, ok := globalPkg.relativelyLookupPackage(file.GetPackage())
 		if !ok {
 			return nil, fmt.Errorf("no such package found: %s", file.GetPackage())
@@ -61,9 +153,7 @@ func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorR
 	*/
 
 	response := []*plugin.CodeGeneratorResponse_File{}
-	for msgIndex, msg := range file.GetMessageType() {
-		path := fmt.Sprintf("%d.%d", messagePath, msgIndex)
-
+	for _, msg := range file.GetMessageType() {
 		opts, err := getPipelineMessageOptions(msg)
 		if err != nil {
 			return nil, err
@@ -72,29 +162,11 @@ func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorR
 			continue
 		}
 
-		pubSubTopicName := opts.GetPubSubTopicName()
-		if len(pubSubTopicName) == 0 {
-			continue
-		}
-
-		/*
-			glog.V(2).Info("Generating schema for a message type ", msg.GetName())
-			schema, err := convertMessageType(pkg, msg, opts, make(map[*descriptor.DescriptorProto]bool), comments, path)
-			if err != nil {
-				glog.Errorf("Failed to convert %s: %v", name, err)
-				return nil, err
-			}
-
-			jsonSchema, err := json.MarshalIndent(schema, "", " ")
-			if err != nil {
-				glog.Error("Failed to encode schema", err)
-				return nil, err
-			}
-		*/
+		pubsubTopicName := opts.GetPubsubTopicName()
 
 		resFile := &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(fmt.Sprintf("%s/%s.schema", strings.Replace(file.GetPackage(), ".", "/", -1), tableName)),
-			Content: proto.String(string()),
+			Name:    proto.String(fmt.Sprintf("%s/%s.schema", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
+			Content: proto.String(string("pubSubTOPIC!")),
 		}
 		response = append(response, resFile)
 	}
@@ -110,9 +182,9 @@ func convert(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, e
 
 	res := &plugin.CodeGeneratorResponse{}
 	for _, file := range req.GetProtoFile() {
-		for msgIndex, msg := range file.GetMessageType() {
+		for _, msg := range file.GetMessageType() {
 			glog.V(1).Infof("Loading a message type %s from package %s", msg.GetName(), file.GetPackage())
-			registerType(file.Package, msg, ParseComments(file), fmt.Sprintf("%d.%d", messagePath, msgIndex))
+			registerType(file.Package, msg)
 		}
 	}
 	for _, file := range req.GetProtoFile() {
@@ -132,7 +204,7 @@ func convert(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, e
 func convertFrom(rd io.Reader) (*plugin.CodeGeneratorResponse, error) {
 	input, err := ioutil.ReadAll(rd)
 	if err != nil {
-		fmt.Error("Failed to read request:", err)
+		fmt.Errorf("Failed to read request:", err)
 		return nil, err
 	}
 	req := &plugin.CodeGeneratorRequest{}
