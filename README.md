@@ -24,9 +24,9 @@ This project extends protoc via [options](https://developers.google.com/protocol
 To avoid any future conflicts, we have a reserved an id (# 1090) for the protobuf extension.  We'll use a map to keep things flexible for the many desired options, rather than allocating more and more individual extenion id options.  
 
 
-Note on versioning:
+**Note on versioning:**
 For now, we will generate Terraform v0.13.  TBD intent on whether/when to update what gets generated [seems more ideal]  and/or if will facilitate multiple versions based on additional options.  
 
 
-Note on Naming:
+**Note on Naming:**
 The name is a reference to [Astounding Stories](https://en.wikipedia.org/wiki/Analog_Science_Fiction_and_Fact).   Specifically, [*Collision Orbit*](https://en.wikipedia.org/wiki/Collision_Orbit), written by [Jack Williamson](https://en.wikipedia.org/wiki/Jack_Williamson), given it is the first claimed use of [Terraforming](https://en.wikipedia.org/wiki/Terraforming), which is what much of this code creates!  
