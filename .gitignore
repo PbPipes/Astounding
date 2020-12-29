@@ -20,3 +20,6 @@ vendor/
 #Binaries produced //TODO - remove Astounding, once package updated
 Astounding
 protoc-gen-pipeline
+
+#example output
+foo/
