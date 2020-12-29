@@ -155,7 +155,7 @@ func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorR
 			continue
 		}
 
-		if opts.GetGenPubsubTopic() == "yes" {
+		if opts.GetGenPubsubTopic() {
 
 			pubsubTopicName := msg.GetName()
 
