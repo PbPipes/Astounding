@@ -1,3 +1,7 @@
+# NOTE -->
+@brucearctor wants to get paid to build this in the course of job duties; therefore public commits will halt, for now.  His primary employer is still sorting out an Open-Source policy/program.  The intent is to sort out the needed pieces for this to be a collaborative venture and for this to be a great example of the work getting done within that company.     
+
+
 # Astounding
 
 ### How to use
