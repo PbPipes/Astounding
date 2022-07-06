@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
+	"text/template"
 
 	Astounding "github.com/PbPipes/Astounding/pipeline"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -155,23 +158,29 @@ func convertFile(file *descriptor.FileDescriptorProto) ([]*plugin.CodeGeneratorR
 			continue
 		}
 
+		// TODO: SHOULD ALSO CREATE TF MODULES?
 		if opts.GetGenPubsubTopic() {
 
-			pubsubTopicName := msg.GetName()
+			type PubSubTempl struct {
+				Name string
+			}
 
-			pubsubTF_template := fmt.Sprintf(`resource "google_pubsub_topic" "%s" {
-	name = "%s"
+			pst := PubSubTempl{Name: msg.GetName()}
 
-	labels = {
-		foo = "foobar",
-		mor = "again"
-	}
-}
-`, msg.GetName(), msg.GetName())
+			pubsub_tmpl, err := template.ParseGlob("templates/pubsub_topic/*")
+			if err != nil {
+				log.Fatalf("FATAL")
+			}
+
+			var buff bytes.Buffer
+			err = pubsub_tmpl.Execute(&buff, pst)
+			if err != nil {
+				panic(err)
+			}
 
 			resFile := &plugin.CodeGeneratorResponse_File{
-				Name:    proto.String(fmt.Sprintf("%s/pubsub/%s.tf", strings.Replace(file.GetPackage(), ".", "/", -1), pubsubTopicName)),
-				Content: proto.String(string(pubsubTF_template)),
+				Name:    proto.String(fmt.Sprintf("%s/pubsub_topic_%s.tf", strings.Replace(file.GetPackage(), ".", "/", -1), msg.GetName())),
+				Content: proto.String(string(string(buff.String()))),
 			}
 
 			response = append(response, resFile)
